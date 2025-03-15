@@ -7,12 +7,14 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
+    "hap-nodejs": "^1.1.1",
     "ky": "^1.7.5",
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@types/node": "^22.13.10",
+    "@oznu/homebridge-types": "^0.0.4",
     "@types/bun": "latest",
+    "@types/node": "^22.13.10",
     "bun": "^1.2.5"
   },
   "peerDependencies": {
