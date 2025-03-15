@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "homebridge-mcp",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "scripts": {},
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.7.0",
