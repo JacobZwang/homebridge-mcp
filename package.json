@@ -1,13 +1,12 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "homebridge-mcp",
   "version": "1.0.0",
-  "description": "",
-  "main": "src/index.ts",
   "scripts": {},
-  "keywords": [],
-  "author": "",
   "dependencies": {
-    "ky": "^1.7.5"
+    "@modelcontextprotocol/sdk": "^1.7.0",
+    "ky": "^1.7.5",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
