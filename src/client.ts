@@ -38,7 +38,7 @@ export interface AccessoryInstance {
   username: string;
   ipAddress: string;
   port: number;
-  services: any[];
+  services: unknown[];
   connectionFailedCount: number;
   configurationNumber: number;
 }
