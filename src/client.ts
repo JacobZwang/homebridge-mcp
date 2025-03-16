@@ -117,8 +117,8 @@ function accessoryToTools(accessory: Accessory): AccessoryTool[] {
           uniqueId: accessory.uniqueId,
         },
 
-        name: `set-${accessory.serviceName}-${serviceCharacteristic.type}`
-          .replaceAll(/ /g, "-")
+        name: `set_${accessory.serviceName}_${serviceCharacteristic.type}`
+          .replaceAll(/ /g, "_")
           .replaceAll(/[^a-zA-Z0-9_]/g, "")
           .toLowerCase(),
         type: serviceCharacteristic.type,
