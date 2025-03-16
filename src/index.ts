@@ -3,8 +3,20 @@ import process from "node:process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-import { HomeBridge } from "./client";
+import { HomeBridge, type AccessoryTool } from "./client";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+
+function exludeTool(tool: AccessoryTool) {
+  if (
+    tool.tool.name.includes("burner") ||
+    tool.tool.name.includes("air") ||
+    tool.tool.name.includes("oven")
+  ) {
+    return true;
+  }
+
+  return false;
+}
 
 const server = new McpServer({
   name: "homebridge",
@@ -17,6 +29,15 @@ async function main() {
   const tools = await client.genTools();
 
   for (const tool of tools) {
+    console.error("Registering tool:", tool.tool.name);
+    if (tool.tool.name.length > 64) {
+      throw new Error("Tool name is too long");
+    }
+
+    if (exludeTool(tool)) {
+      continue;
+    }
+
     server.tool(
       tool.tool.name,
       tool.tool.description,
@@ -33,12 +54,7 @@ async function main() {
 
           return {
             isError: false,
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify(res),
-              },
-            ],
+            content: [],
           };
         } catch (err) {
           return {
