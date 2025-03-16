@@ -29,7 +29,7 @@ class HomeBridge {
       headers: HEADERS,
       json: {
         characteristicType: accessoryCharacteristic.type,
-        value,
+        value: value.toString(),
       },
     });
   }
