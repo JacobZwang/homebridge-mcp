@@ -123,21 +123,13 @@ function accessoryToTools(accessory: Accessory): AccessoryTool[] {
           .toLowerCase(),
         type: serviceCharacteristic.type,
         description: `
+Accessory Id: ${accessory.uniqueId}
 Accessory Type: ${accessory.humanType}
 Accessory Name: ${accessory.serviceName}
 
 Service Name: ${serviceCharacteristic.serviceName}
 Description: ${serviceCharacteristic.description}
 Format: ${serviceCharacteristic.format}
-
-Permissions:
-Can Read: ${serviceCharacteristic.canRead}
-Can Write: ${serviceCharacteristic.canWrite}
-
-Value Rules:
-Min Value: ${serviceCharacteristic.minValue}
-Max Value: ${serviceCharacteristic.maxValue}
-Min Step: ${serviceCharacteristic.minStep}
 `,
 
         format: serviceCharacteristic.format,

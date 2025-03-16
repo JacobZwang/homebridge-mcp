@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 
 import { HomeBridge, type AccessoryTool } from "./client";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
 
 function exludeTool(tool: AccessoryTool) {
   if (
@@ -34,21 +35,44 @@ async function main() {
 Get information from all of the accessories.
 
 Use this to get the current state of all accessories and their services.
+
+Also read this before writing to any accessory to determine its rules.
 `.trim(),
-    {},
-    async (_extra): Promise<CallToolResult> => {
+    {
+      accessoryId: z.string(),
+    },
+    async ({ accessoryId }): Promise<CallToolResult> => {
       const accessories = await client.fetchAccessories();
 
-      return {
-        content: accessories.flatMap((accessory) =>
-          accessory.serviceCharacteristics
-            .filter(
-              (serviceCharacteristic) =>
-                serviceCharacteristic.format !== "tlv8",
-            )
-            .map((serviceCharacteristic) => ({
+      const accessory = accessories.find(
+        (accessory) => accessory.uniqueId === accessoryId,
+      );
+
+      if (!accessory) {
+        return {
+          isError: true,
+          content: [
+            {
               type: "text",
-              text: `
+              text: `Accessory with id ${accessoryId} not found`,
+            },
+          ],
+        };
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: accessory.serviceCharacteristics
+              .filter(
+                (serviceCharacteristic) =>
+                  serviceCharacteristic.format !== "tlv8",
+              )
+              .map(
+                (serviceCharacteristic) =>
+                  `
+Accessory Id: ${accessory.uniqueId}
 Accessory Type: ${accessory.humanType}
 Accessory Name: ${accessory.serviceName}
 Service Name: ${serviceCharacteristic.serviceName}
@@ -65,9 +89,11 @@ Min Value: ${serviceCharacteristic.minValue}
 Max Value: ${serviceCharacteristic.maxValue}
 Min Step: ${serviceCharacteristic.minStep}
 ---------------------------------------------------
-`.trim(),
-            })),
-        ),
+`,
+              )
+              .join("\n"),
+          },
+        ],
       };
     },
   );
@@ -88,7 +114,7 @@ Min Step: ${serviceCharacteristic.minStep}
       tool.input,
       async ({ value }, _extra): Promise<CallToolResult> => {
         try {
-          const res = await client.sendToolCall(
+          await client.sendToolCall(
             {
               uniqueId: tool.tool.accessory.uniqueId,
               type: tool.tool.type,
