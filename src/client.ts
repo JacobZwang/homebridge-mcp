@@ -182,6 +182,56 @@ export class HomeBridge {
       .json();
   }
 
+  async readAccessoryInfo(
+    accessoryId: string,
+    cached_accessories?: Accessory[],
+  ): Promise<{ type: "text"; text: string }> {
+    const accessories = cached_accessories ?? (await this.fetchAccessories());
+
+    const accessory = accessories.find(
+      (accessory) => accessory.uniqueId === accessoryId,
+    );
+
+    if (!accessory) {
+      throw new Error(`Accessory with id ${accessoryId} not found`);
+    }
+
+    return {
+      type: "text",
+      text: `
+Accessory Id: ${accessory.uniqueId}
+Accessory Type: ${accessory.humanType}
+Accessory Name: ${accessory.serviceName}
+
+Services:
+
+${accessory.serviceCharacteristics
+  .filter((serviceCharacteristic) => serviceCharacteristic.format !== "tlv8")
+  .map(
+    (serviceCharacteristic) =>
+      `
+Service Type: ${serviceCharacteristic.type}
+Description: ${serviceCharacteristic.description}
+Current Value: ${serviceCharacteristic.value}
+
+Format: ${serviceCharacteristic.format}
+Numeric formats should *not* be quoted.
+
+Permissions:
+Can Read: ${serviceCharacteristic.canRead}
+Can Write: ${serviceCharacteristic.canWrite}
+
+Value Rules:
+Min Value: ${serviceCharacteristic.minValue}
+Max Value: ${serviceCharacteristic.maxValue}
+Min Step: ${serviceCharacteristic.minStep}
+---------------------------------------------------
+`,
+  )
+  .join("\n")}`,
+    };
+  }
+
   async writeAccessoryValue(
     accessoryId: string,
     serviceType: string,

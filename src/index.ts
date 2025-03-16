@@ -70,7 +70,41 @@ ServiceType: ${serviceCharacteristic.type}
   server.tool(
     "read_accessory_info",
     `
-Get information from all of the accessories.
+Get information from an accessory.
+
+Also read this before writing to any accessory/service to determine its rules.
+
+Make sure you've listed accessories at least once before using this.
+`.trim(),
+    {
+      accessoryId: z.string(),
+    },
+    async ({ accessoryId }): Promise<CallToolResult> => {
+      try {
+        const result = await client.readAccessoryInfo(accessoryId);
+
+        return {
+          isError: false,
+          content: [result],
+        };
+      } catch (err) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(err),
+            },
+          ],
+        };
+      }
+    },
+  );
+
+  server.tool(
+    "batch_read_accessories_info",
+    `
+Get information from many accessories.
 
 Use this to get the current state of all accessories and their services.
 
@@ -79,64 +113,30 @@ Also read this before writing to any accessory to determine its rules.
 Make sure you've listed accessories at least once before using this.
 `.trim(),
     {
-      accessoryId: z.string(),
+      accessoryIds: z.array(z.string()),
     },
-    async ({ accessoryId }): Promise<CallToolResult> => {
+    async ({ accessoryIds }): Promise<CallToolResult> => {
       const accessories = await client.fetchAccessories();
 
-      const accessory = accessories.find(
-        (accessory) => accessory.uniqueId === accessoryId,
-      );
+      try {
+        const content = await Promise.all(
+          accessoryIds.map((id) => client.readAccessoryInfo(id, accessories)),
+        );
 
-      if (!accessory) {
         return {
-          isError: true,
+          content,
+        };
+      } catch (err) {
+        return {
+          isError: false,
           content: [
             {
               type: "text",
-              text: `Accessory with id ${accessoryId} not found`,
+              text: JSON.stringify(err),
             },
           ],
         };
       }
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: accessory.serviceCharacteristics
-              .filter(
-                (serviceCharacteristic) =>
-                  serviceCharacteristic.format !== "tlv8",
-              )
-              .map(
-                (serviceCharacteristic) =>
-                  `
-Accessory Id: ${accessory.uniqueId}
-Accessory Type: ${accessory.humanType}
-Accessory Name: ${accessory.serviceName}
-Service Type: ${serviceCharacteristic.type}
-Description: ${serviceCharacteristic.description}
-Current Value: ${serviceCharacteristic.value}
-
-Format: ${serviceCharacteristic.format}
-Numeric formats should *not* be quoted.
-
-Permissions:
-Can Read: ${serviceCharacteristic.canRead}
-Can Write: ${serviceCharacteristic.canWrite}
-
-Value Rules:
-Min Value: ${serviceCharacteristic.minValue}
-Max Value: ${serviceCharacteristic.maxValue}
-Min Step: ${serviceCharacteristic.minStep}
----------------------------------------------------
-`,
-              )
-              .join("\n"),
-          },
-        ],
-      };
     },
   );
 
