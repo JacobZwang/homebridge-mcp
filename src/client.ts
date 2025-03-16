@@ -31,6 +31,6 @@ class HomeBridge {
         characteristicType: accessoryCharacteristic.type,
         value: value.toString(),
       },
-    });
+    }).json();
   }
 }
