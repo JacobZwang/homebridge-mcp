@@ -7,6 +7,18 @@ import { HomeBridge, type AccessoryTool } from "./client";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 
+function exludeTool(tool: AccessoryTool) {
+  if (
+    tool.tool.name.includes("burner") ||
+    tool.tool.name.includes("air") ||
+    tool.tool.name.includes("oven")
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
 const server = new McpServer({
   name: "homebridge",
   version: "0.1.0",
@@ -16,6 +28,37 @@ async function main() {
   const client = new HomeBridge();
 
   const tools = await client.genTools();
+
+  server.tool("list_accessories", "List all accessories", {}, async () => {
+    const accessories = await client.fetchAccessories();
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: accessories
+            .map((accessory) =>
+              `
+Accessory Id: ${accessory.uniqueId}
+Accessory Type: ${accessory.humanType}
+Accessory Name: ${accessory.serviceName}
+
+Services:
+${accessory.serviceCharacteristics
+  .map((serviceCharacteristic) =>
+    `
+Name: ${serviceCharacteristic.serviceName}
+ServiceType: ${serviceCharacteristic.serviceType}
+`.trim(),
+  )
+  .join("\n")}
+`.trim(),
+            )
+            .join("\n"),
+        },
+      ],
+    };
+  });
 
   server.tool(
     "read_accessory_info",
@@ -86,44 +129,44 @@ Min Step: ${serviceCharacteristic.minStep}
     },
   );
 
-  for (const tool of tools) {
-    console.error("Registering tool:", tool.tool.name);
-    if (tool.tool.name.length > 64) {
-      throw new Error("Tool name is too long");
-    }
+  server.tool(
+    "write_accessory_value",
+    "Write a value to an accessory or service by its unique id",
+    {
+      accessoryId: z.string(),
+      serviceType: z.string(),
+      value: z.string().or(z.number()).or(z.boolean()),
+    },
+    async (
+      { accessoryId, serviceType, value },
+      _extra,
+    ): Promise<CallToolResult> => {
+      try {
+        await client.sendToolCall(
+          {
+            uniqueId: accessoryId,
+            type: serviceType,
+          },
+          value,
+        );
 
-    server.tool(
-      tool.tool.name,
-      tool.tool.description,
-      tool.input,
-      async ({ value }, _extra): Promise<CallToolResult> => {
-        try {
-          await client.sendToolCall(
+        return {
+          isError: false,
+          content: [],
+        };
+      } catch (err) {
+        return {
+          isError: true,
+          content: [
             {
-              uniqueId: tool.tool.accessory.uniqueId,
-              type: tool.tool.type,
+              type: "text",
+              text: JSON.stringify(err),
             },
-            value,
-          );
-
-          return {
-            isError: false,
-            content: [],
-          };
-        } catch (err) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify(err),
-              },
-            ],
-          };
-        }
-      },
-    );
-  }
+          ],
+        };
+      }
+    },
+  );
 
   const transport = new StdioServerTransport();
 
