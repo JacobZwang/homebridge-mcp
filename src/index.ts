@@ -106,7 +106,7 @@ Make sure you've listed accessories at least once before using this.
 Accessory Id: ${accessory.uniqueId}
 Accessory Type: ${accessory.humanType}
 Accessory Name: ${accessory.serviceName}
-Service Type: ${serviceCharacteristic.serviceType}
+Service Type: ${serviceCharacteristic.type}
 Description: ${serviceCharacteristic.description}
 Format: ${serviceCharacteristic.format}
 Current Value: ${serviceCharacteristic.value}
