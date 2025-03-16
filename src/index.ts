@@ -117,8 +117,10 @@ Accessory Type: ${accessory.humanType}
 Accessory Name: ${accessory.serviceName}
 Service Type: ${serviceCharacteristic.type}
 Description: ${serviceCharacteristic.description}
-Format: ${serviceCharacteristic.format}
 Current Value: ${serviceCharacteristic.value}
+
+Format: ${serviceCharacteristic.format}
+Numeric formats should *not* be quoted.
 
 Permissions:
 Can Read: ${serviceCharacteristic.canRead}
@@ -202,7 +204,7 @@ Make sure to send number values unquoted.
             uniqueId: accessoryId,
             type: serviceType,
           },
-          value,
+          typedValue,
         );
 
         return {
