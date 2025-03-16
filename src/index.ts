@@ -48,7 +48,7 @@ ${accessory.serviceCharacteristics
   .map((serviceCharacteristic) =>
     `
 Name: ${serviceCharacteristic.serviceName}
-ServiceType: ${serviceCharacteristic.serviceType}
+ServiceType: ${serviceCharacteristic.type}
 `.trim(),
   )
   .join("\n")}
@@ -106,7 +106,7 @@ Also read this before writing to any accessory to determine its rules.
 Accessory Id: ${accessory.uniqueId}
 Accessory Type: ${accessory.humanType}
 Accessory Name: ${accessory.serviceName}
-Service Name: ${serviceCharacteristic.serviceName}
+Service Type: ${serviceCharacteristic.serviceType}
 Description: ${serviceCharacteristic.description}
 Format: ${serviceCharacteristic.format}
 Current Value: ${serviceCharacteristic.value}
