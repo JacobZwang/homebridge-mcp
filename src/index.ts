@@ -131,7 +131,7 @@ Min Step: ${serviceCharacteristic.minStep}
 
   server.tool(
     "write_accessory_value",
-    "Write a value to an accessory or service by its unique id.",
+    "Write a value to an accessory or service by its unique id. Make sure to send number values unquoted.",
     {
       accessoryId: z.string(),
       serviceType: z.string(),
@@ -147,7 +147,7 @@ Min Step: ${serviceCharacteristic.minStep}
             uniqueId: accessoryId,
             type: serviceType,
           },
-          value,
+          z.number().or(z.boolean()).or(z.string()).parse(value),
         );
 
         return {
