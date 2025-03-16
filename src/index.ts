@@ -7,18 +7,6 @@ import { HomeBridge, type AccessoryTool } from "./client";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 
-function exludeTool(tool: AccessoryTool) {
-  if (
-    tool.tool.name.includes("burner") ||
-    tool.tool.name.includes("air") ||
-    tool.tool.name.includes("oven")
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
 const server = new McpServer({
   name: "homebridge",
   version: "0.1.0",
@@ -102,10 +90,6 @@ Min Step: ${serviceCharacteristic.minStep}
     console.error("Registering tool:", tool.tool.name);
     if (tool.tool.name.length > 64) {
       throw new Error("Tool name is too long");
-    }
-
-    if (exludeTool(tool)) {
-      continue;
     }
 
     server.tool(
