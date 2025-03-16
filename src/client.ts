@@ -1,10 +1,11 @@
 import ky from "ky";
 import { BASE_URL, HEADERS } from "./config";
-import { z } from "zod";
+import type { z } from "zod";
 import { formatToZod } from "./format";
 
 export enum ServiceType {
   ProtocolInformation = "ProtocolInformation",
+  // some others idk
 }
 
 export type ServiceCharacteristicValue = string | number | boolean;
@@ -161,13 +162,18 @@ export class HomeBridge {
     return accessories.flatMap(accessoryToTools);
   }
 
-  sendToolCall(accessoryCharacteristic: { type: string, uniqueId: string }, value: any) {
-    return ky.put(`${BASE_URL}/api/accessories/${accessoryCharacteristic.uniqueId}`, {
-      headers: HEADERS,
-      json: {
-        characteristicType: accessoryCharacteristic.type,
-        value: value.toString(),
-      },
-    }).json();
+  sendToolCall(
+    accessoryCharacteristic: { type: string; uniqueId: string },
+    value: unknown,
+  ) {
+    return ky
+      .put(`${BASE_URL}/api/accessories/${accessoryCharacteristic.uniqueId}`, {
+        headers: HEADERS,
+        json: {
+          characteristicType: accessoryCharacteristic.type,
+          value: value,
+        },
+      })
+      .json();
   }
 }
