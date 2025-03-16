@@ -27,8 +27,6 @@ const server = new McpServer({
 async function main() {
   const client = new HomeBridge();
 
-  const tools = await client.genTools();
-
   server.tool("list_accessories", "List all accessories", {}, async () => {
     const accessories = await client.fetchAccessories();
 
@@ -68,6 +66,8 @@ Get information from all of the accessories.
 Use this to get the current state of all accessories and their services.
 
 Also read this before writing to any accessory to determine its rules.
+
+Make sure you've listed accessories at least once before using this.
 `.trim(),
     {
       accessoryId: z.string(),
@@ -131,7 +131,7 @@ Min Step: ${serviceCharacteristic.minStep}
 
   server.tool(
     "write_accessory_value",
-    "Write a value to an accessory or service by its unique id",
+    "Write a value to an accessory or service by its unique id.",
     {
       accessoryId: z.string(),
       serviceType: z.string(),
