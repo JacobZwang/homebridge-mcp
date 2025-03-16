@@ -4,6 +4,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 
+import { HomeBridge } from "./client";
+
 const server = new McpServer({
   name: "homebridge",
   version: "0.1.0",
@@ -12,6 +14,10 @@ const server = new McpServer({
 // server.tool("name", "description", input_schema, async (input) => {})
 
 async function main() {
+  const client = new HomeBridge();
+
+  await client.fetchAccessories();
+
   const transport = new StdioServerTransport();
 
   await server.connect(transport);
