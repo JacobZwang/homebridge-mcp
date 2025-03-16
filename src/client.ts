@@ -1,7 +1,9 @@
 import ky from "ky";
 import { BASE_URL, HEADERS } from "./config";
+import { z } from "zod";
+import { formatToZod } from "./format";
 
-export enum AccessoryType {
+export enum ServiceType {
   ProtocolInformation = "ProtocolInformation",
 }
 
@@ -14,7 +16,7 @@ export interface ServiceCharacteristic {
   iid: number;
   uuid: string;
   type: ServiceCharacteristicType;
-  serviceType: AccessoryType;
+  serviceType: ServiceType;
   serviceName: string;
   description: string;
   value: ServiceCharacteristicValue;
@@ -47,7 +49,7 @@ export interface Accessory {
   aid: number;
   iid: number;
   uuid: string;
-  type: AccessoryType;
+  type: ServiceType;
 
   humanType: string;
   serviceName: string;
@@ -61,7 +63,30 @@ export interface Accessory {
   uniqueId: string;
 }
 
-function accessoryToTools(accessory: Accessory) {}
+export interface AccessoryTool {
+  name: string;
+  description: string;
+}
+
+function accessoryToTools(accessory: Accessory) {
+  return accessory.serviceCharacteristics.map((serviceCharacteristic) => ({
+    input: z.object({
+      value: formatToZod(serviceCharacteristic.format),
+    }),
+    tool: {
+      accessory: {
+        type: accessory.type,
+        serviceName: accessory.serviceName,
+        uniqueId: accessory.uniqueId,
+      },
+
+      type: serviceCharacteristic.type,
+      description: serviceCharacteristic.description,
+
+      format: serviceCharacteristic.format,
+    },
+  }));
+}
 
 export class HomeBridge {
   private cachedAccessories: Accessory[] | null = null;

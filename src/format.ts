@@ -1,27 +1,20 @@
-import { z } from "zod";
+import { z, type ZodType } from "zod";
 
-export function formatToZod(format: string) {
-    if (format === "string") {
-        return z.string();
-    }
-
-    if (format === "unint8") {
-        return z.number().int().positive().lte(255);
-    }
-
-    if (format === "uint32") {
-        return z.number().int().positive().lte(4294967295);
-    }
-
-    if (format === "bool") {
-        return z.enum(["0", "1"])
-    }
-
-    if (format === "float") {
-        return z.number();
-    }
-
-    if (format === "int") {
-        return z.number().int();
-    }
+export function formatToZod(format: string): ZodType {
+  switch (format) {
+    case "string":
+      return z.string();
+    case "int":
+    case "uint8":
+    case "uint16":
+    case "uint32":
+      return z.number().int().positive();
+    case "float":
+      return z.number();
+    case "bool":
+      return z.boolean();
+    default:
+      throw new Error(`Unknown format: ${format}`);
+  }
 }
+
