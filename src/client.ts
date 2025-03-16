@@ -151,22 +151,12 @@ Format: ${serviceCharacteristic.format}
 }
 
 export class HomeBridge {
-  private cachedAccessories: Accessory[] | null = null;
-
-  async fetchAccessories(cached = true): Promise<Accessory[]> {
-    if (cached && this.cachedAccessories !== null) {
-      return this.cachedAccessories;
-    }
-
+  async fetchAccessories(): Promise<Accessory[]> {
     const res: Accessory[] = await ky
       .get(`${BASE_URL}/api/accessories`, {
         headers: HEADERS,
       })
       .json();
-
-    if (cached) {
-      this.cachedAccessories = res;
-    }
 
     return res;
   }
