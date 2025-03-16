@@ -27,16 +27,24 @@ const server = new McpServer({
 async function main() {
   const client = new HomeBridge();
 
-  server.tool("list_accessories", "List all accessories", {}, async () => {
-    const accessories = await client.fetchAccessories();
+  server.tool(
+    "list_accessories",
+    `
+List all accessories.
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: accessories
-            .map((accessory) =>
-              `
+You can then use 'read_accessory_info' and 'write_accessory_value' to read and write from the accessories/services.
+`.trim(),
+    {},
+    async () => {
+      const accessories = await client.fetchAccessories();
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: accessories
+              .map((accessory) =>
+                `
 Accessory Id: ${accessory.uniqueId}
 Accessory Type: ${accessory.humanType}
 Accessory Name: ${accessory.serviceName}
@@ -51,12 +59,13 @@ ServiceType: ${serviceCharacteristic.type}
   )
   .join("\n")}
 `.trim(),
-            )
-            .join("\n"),
-        },
-      ],
-    };
-  });
+              )
+              .join("\n"),
+          },
+        ],
+      };
+    },
+  );
 
   server.tool(
     "read_accessory_info",
@@ -131,7 +140,10 @@ Min Step: ${serviceCharacteristic.minStep}
 
   server.tool(
     "write_accessory_value",
-    "Write a value to an accessory or service by its unique id. Make sure to send number values unquoted.",
+    `
+Write a value to an accessory or service by its unique id.
+Make sure to send number values unquoted.
+`,
     {
       accessoryId: z.string(),
       serviceType: z.string(),
@@ -142,12 +154,55 @@ Min Step: ${serviceCharacteristic.minStep}
       _extra,
     ): Promise<CallToolResult> => {
       try {
+        const accessories = await client.fetchAccessories();
+
+        const accessory = accessories.find(
+          (accessory) => accessory.uniqueId === accessoryId,
+        );
+
+        if (!accessory) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: `Accessory with id ${accessoryId} not found`,
+              },
+            ],
+          };
+        }
+
+        const service = accessory.serviceCharacteristics.find(
+          (serviceCharacteristic) => serviceCharacteristic.type === serviceType,
+        );
+
+        if (!service) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: `Service with type ${serviceType} not found for accessory with id ${accessoryId}`,
+              },
+            ],
+          };
+        }
+
+        let typedValue = value;
+        if (service.format === "bool") {
+          typedValue = value === "true";
+        } else if (service.format === "float") {
+          typedValue = Number.parseFloat(value as string);
+        } else if (service.format !== "string") {
+          typedValue = Number.parseInt(value as string, 10);
+        }
+
         await client.sendToolCall(
           {
             uniqueId: accessoryId,
             type: serviceType,
           },
-          z.number().or(z.boolean()).or(z.string()).parse(value),
+          value,
         );
 
         return {
