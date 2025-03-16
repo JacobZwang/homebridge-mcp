@@ -167,11 +167,11 @@ export class HomeBridge {
     return accessories.flatMap(accessoryToTools);
   }
 
-  sendToolCall(
+  async sendToolCall(
     accessoryCharacteristic: { type: string; uniqueId: string },
     value: unknown,
-  ) {
-    return ky
+  ): Promise<unknown> {
+    return await ky
       .put(`${BASE_URL}/api/accessories/${accessoryCharacteristic.uniqueId}`, {
         headers: HEADERS,
         json: {
@@ -180,5 +180,62 @@ export class HomeBridge {
         },
       })
       .json();
+  }
+
+  async writeAccessoryValue(
+    accessoryId: string,
+    serviceType: string,
+    value: string | number | boolean,
+  ) {
+    const accessories = await this.fetchAccessories();
+
+    const accessory = accessories.find(
+      (accessory) => accessory.uniqueId === accessoryId,
+    );
+
+    if (!accessory) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: `Accessory with id ${accessoryId} not found`,
+          },
+        ],
+      };
+    }
+
+    const service = accessory.serviceCharacteristics.find(
+      (serviceCharacteristic) => serviceCharacteristic.type === serviceType,
+    );
+
+    if (!service) {
+      return {
+        isError: true,
+        content: [
+          {
+            type: "text",
+            text: `Service with type ${serviceType} not found for accessory with id ${accessoryId}`,
+          },
+        ],
+      };
+    }
+
+    let typedValue = value;
+    if (service.format === "bool") {
+      typedValue = value === "true";
+    } else if (service.format === "float") {
+      typedValue = Number.parseFloat(value as string);
+    } else if (service.format !== "string") {
+      typedValue = Number.parseInt(value as string, 10);
+    }
+
+    await this.sendToolCall(
+      {
+        uniqueId: accessoryId,
+        type: serviceType,
+      },
+      typedValue,
+    );
   }
 }

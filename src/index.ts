@@ -156,55 +156,48 @@ Make sure to send number values unquoted.
       _extra,
     ): Promise<CallToolResult> => {
       try {
-        const accessories = await client.fetchAccessories();
+        await client.writeAccessoryValue(accessoryId, serviceType, value);
 
-        const accessory = accessories.find(
-          (accessory) => accessory.uniqueId === accessoryId,
-        );
+        return {
+          isError: false,
+          content: [],
+        };
+      } catch (err) {
+        return {
+          isError: true,
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(err),
+            },
+          ],
+        };
+      }
+    },
+  );
 
-        if (!accessory) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text",
-                text: `Accessory with id ${accessoryId} not found`,
-              },
-            ],
-          };
-        }
+  server.tool(
+    "batch_write_accessory_values",
+    `
+Write multiple values to accessories or services by their unique ids.
 
-        const service = accessory.serviceCharacteristics.find(
-          (serviceCharacteristic) => serviceCharacteristic.type === serviceType,
-        );
-
-        if (!service) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text",
-                text: `Service with type ${serviceType} not found for accessory with id ${accessoryId}`,
-              },
-            ],
-          };
-        }
-
-        let typedValue = value;
-        if (service.format === "bool") {
-          typedValue = value === "true";
-        } else if (service.format === "float") {
-          typedValue = Number.parseFloat(value as string);
-        } else if (service.format !== "string") {
-          typedValue = Number.parseInt(value as string, 10);
-        }
-
-        await client.sendToolCall(
-          {
-            uniqueId: accessoryId,
-            type: serviceType,
-          },
-          typedValue,
+Make sure to send number values unquoted.
+`,
+    {
+      values: z.array(
+        z.object({
+          accessoryId: z.string(),
+          serviceType: z.string(),
+          value: z.string().or(z.number()).or(z.boolean()),
+        }),
+      ),
+    },
+    async ({ values }, _extra): Promise<CallToolResult> => {
+      try {
+        await Promise.all(
+          values.map(({ accessoryId, serviceType, value }) =>
+            client.writeAccessoryValue(accessoryId, serviceType, value),
+          ),
         );
 
         return {
