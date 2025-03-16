@@ -222,12 +222,14 @@ export class HomeBridge {
     }
 
     let typedValue = value;
-    if (service.format === "bool") {
-      typedValue = value === "true";
-    } else if (service.format === "float") {
-      typedValue = Number.parseFloat(value as string);
-    } else if (service.format !== "string") {
-      typedValue = Number.parseInt(value as string, 10);
+    if (typeof value === "string") {
+      if (service.format === "bool") {
+        typedValue = value === "true";
+      } else if (service.format === "float") {
+        typedValue = Number.parseFloat(value as string);
+      } else if (service.format !== "string") {
+        typedValue = Number.parseInt(value as string, 10);
+      }
     }
 
     await this.sendToolCall(
