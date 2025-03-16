@@ -7,23 +7,30 @@ export enum ServiceType {
   ProtocolInformation = "ProtocolInformation",
 }
 
-export enum ServiceCharacteristicType {}
-
 export type ServiceCharacteristicValue = string | number | boolean;
 
 export interface ServiceCharacteristic {
   aid: number;
   iid: number;
   uuid: string;
-  type: ServiceCharacteristicType;
+  type: string;
   serviceType: ServiceType;
   serviceName: string;
   description: string;
-  value: ServiceCharacteristicValue;
+
   format: string;
+
   perms: string[];
+
+  value: ServiceCharacteristicValue;
+
   canRead: boolean;
   canWrite: boolean;
+
+  minValue?: number;
+  maxValue?: number;
+  minStep?: number;
+
   ev: boolean;
 }
 
@@ -64,15 +71,41 @@ export interface Accessory {
 }
 
 export interface AccessoryTool {
-  name: string;
-  description: string;
+  input: {
+    value: z.ZodType<unknown>;
+  };
+  tool: {
+    accessory: {
+      type: ServiceType;
+      serviceName: string;
+      uniqueId: string;
+    };
+
+    type: string;
+    description: string;
+
+    format: string;
+
+    value: {
+      current: ServiceCharacteristicValue;
+
+      rules: {
+        canRead: boolean;
+        canWrite: boolean;
+
+        minValue?: number;
+        maxValue?: number;
+        minStep?: number;
+      };
+    };
+  };
 }
 
-function accessoryToTools(accessory: Accessory) {
+function accessoryToTools(accessory: Accessory): AccessoryTool[] {
   return accessory.serviceCharacteristics.map((serviceCharacteristic) => ({
-    input: z.object({
+    input: {
       value: formatToZod(serviceCharacteristic.format),
-    }),
+    },
     tool: {
       accessory: {
         type: accessory.type,
@@ -84,6 +117,19 @@ function accessoryToTools(accessory: Accessory) {
       description: serviceCharacteristic.description,
 
       format: serviceCharacteristic.format,
+
+      value: {
+        current: serviceCharacteristic.value,
+
+        rules: {
+          canRead: serviceCharacteristic.canRead,
+          canWrite: serviceCharacteristic.canWrite,
+
+          minValue: serviceCharacteristic.minValue,
+          maxValue: serviceCharacteristic.maxValue,
+          minStep: serviceCharacteristic.minStep,
+        },
+      },
     },
   }));
 }
@@ -109,13 +155,9 @@ export class HomeBridge {
     return res;
   }
 
-  sendToolCall(accessoryCharacteristic: { type: string, uniqueId: string }, value: any) {
-    return ky.put(`${BASE_URL}/api/accessories/${accessoryCharacteristic.uniqueId}`, {
-      headers: HEADERS,
-      json: {
-        characteristicType: accessoryCharacteristic.type,
-        value: value.toString(),
-      },
-    }).json();
+  async genTools(): Promise<AccessoryTool[]> {
+    const accessories = await this.fetchAccessories();
+
+    return accessories.flatMap(accessoryToTools);
   }
 }

@@ -16,7 +16,16 @@ const server = new McpServer({
 async function main() {
   const client = new HomeBridge();
 
-  await client.fetchAccessories();
+  const tools = await client.genTools();
+
+  for (const tool of tools) {
+    server.tool(
+      tool.tool.type,
+      tool.tool.description,
+      tool.input,
+      async ({ value }) => {},
+    );
+  }
 
   const transport = new StdioServerTransport();
 
