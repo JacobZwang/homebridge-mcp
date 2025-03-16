@@ -18,7 +18,7 @@ async function main() {
 
   for (const tool of tools) {
     server.tool(
-      tool.tool.type,
+      tool.tool.name,
       tool.tool.description,
       tool.input,
       async ({ value }, _extra): Promise<CallToolResult> => {

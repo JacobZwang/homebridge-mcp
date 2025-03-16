@@ -82,6 +82,7 @@ export interface AccessoryTool {
       uniqueId: string;
     };
 
+    name: string;
     type: string;
     description: string;
 
@@ -103,36 +104,57 @@ export interface AccessoryTool {
 }
 
 function accessoryToTools(accessory: Accessory): AccessoryTool[] {
-  return accessory.serviceCharacteristics.map((serviceCharacteristic) => ({
-    input: {
-      value: formatToZod(serviceCharacteristic.format),
-    },
-    tool: {
-      accessory: {
-        type: accessory.type,
-        serviceName: accessory.serviceName,
-        uniqueId: accessory.uniqueId,
+  return accessory.serviceCharacteristics
+    .filter((serviceCharacteristic) => serviceCharacteristic.format !== "tlv8")
+    .map((serviceCharacteristic) => ({
+      input: {
+        value: formatToZod(serviceCharacteristic.format),
       },
+      tool: {
+        accessory: {
+          type: accessory.type,
+          serviceName: accessory.serviceName,
+          uniqueId: accessory.uniqueId,
+        },
 
-      type: serviceCharacteristic.type,
-      description: serviceCharacteristic.description,
+        name: `${accessory.serviceName}-${serviceCharacteristic.type}`,
+        type: serviceCharacteristic.type,
+        description: `
+Accessory Type: ${accessory.humanType}
+Accessory Name: ${accessory.serviceName}
 
-      format: serviceCharacteristic.format,
+Service Name: ${serviceCharacteristic.serviceName}
+Description: ${serviceCharacteristic.description}
+Format: ${serviceCharacteristic.format}
 
-      value: {
-        current: serviceCharacteristic.value,
+Current Value: ${serviceCharacteristic.value}
 
-        rules: {
-          canRead: serviceCharacteristic.canRead,
-          canWrite: serviceCharacteristic.canWrite,
+Permissions:
+Can Read: ${serviceCharacteristic.canRead}
+Can Write: ${serviceCharacteristic.canWrite}
 
-          minValue: serviceCharacteristic.minValue,
-          maxValue: serviceCharacteristic.maxValue,
-          minStep: serviceCharacteristic.minStep,
+Value Rules:
+Min Value: ${serviceCharacteristic.minValue}
+Max Value: ${serviceCharacteristic.maxValue}
+Min Step: ${serviceCharacteristic.minStep}
+`,
+
+        format: serviceCharacteristic.format,
+
+        value: {
+          current: serviceCharacteristic.value,
+
+          rules: {
+            canRead: serviceCharacteristic.canRead,
+            canWrite: serviceCharacteristic.canWrite,
+
+            minValue: serviceCharacteristic.minValue,
+            maxValue: serviceCharacteristic.maxValue,
+            minStep: serviceCharacteristic.minStep,
+          },
         },
       },
-    },
-  }));
+    }));
 }
 
 export class HomeBridge {
