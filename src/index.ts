@@ -3,21 +3,9 @@ import process from "node:process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
-import { HomeBridge, type AccessoryTool } from "./client";
+import { HomeBridge } from "./client";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-
-function exludeTool(tool: AccessoryTool) {
-  if (
-    tool.tool.name.includes("burner") ||
-    tool.tool.name.includes("air") ||
-    tool.tool.name.includes("oven")
-  ) {
-    return true;
-  }
-
-  return false;
-}
 
 const server = new McpServer({
   name: "homebridge",
