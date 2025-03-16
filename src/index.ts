@@ -94,9 +94,9 @@ Make sure you've listed accessories at least once before using this.
     `
 Get information from many accessories.
 
-Use this to get the current state of all accessories and their services.
+Use this to get the current state of several accessories and their services.
 
-Also read this before writing to any accessory to determine its rules.
+For a global overview of all accessories, use 'list_accessories'.
 
 Make sure you've listed accessories at least once before using this.
 `.trim(),
