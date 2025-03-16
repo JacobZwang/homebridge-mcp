@@ -130,8 +130,6 @@ Service Name: ${serviceCharacteristic.serviceName}
 Description: ${serviceCharacteristic.description}
 Format: ${serviceCharacteristic.format}
 
-Current Value: ${serviceCharacteristic.value}
-
 Permissions:
 Can Read: ${serviceCharacteristic.canRead}
 Can Write: ${serviceCharacteristic.canWrite}
