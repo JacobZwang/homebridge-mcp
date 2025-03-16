@@ -23,4 +23,14 @@ class HomeBridge {
 
     return res;
   }
+
+  sendToolCall(accessoryCharacteristic: { type: string, uniqueId: string }, value: any) {
+    return ky.put(`${BASE_URL}/api/accessories/${accessoryCharacteristic.uniqueId}`, {
+      headers: HEADERS,
+      json: {
+        characteristicType: accessoryCharacteristic.type,
+        value,
+      },
+    });
+  }
 }
